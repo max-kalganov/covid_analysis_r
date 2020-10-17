@@ -68,7 +68,8 @@ server <- function(input, output, session) {
     ggplot(month_to_diff, aes(x = diff, y = mnth, fill=stat(x))) +
       geom_density_ridges_gradient(scale = 1, rel_min_height = 0.01) +
       scale_fill_viridis_c(name = "Confirmed people\n per day") +
-      labs(title = paste0("Diffs for each month in country ", input$country))
+      labs(title = paste0("Diffs for each month in country ", input$country)) + 
+      xlab("Confirmed people\n per day")
   })
   
 }
