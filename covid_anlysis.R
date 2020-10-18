@@ -58,9 +58,9 @@ list_death <- list_of_countries(top_10_countries_death)
 
 vis_data <- function(data_list){
   cur_plot <- ggplot(mapping = aes(y=diff))
-  for (i in 1:length(list_conf)){
-    cur_df <- list_conf[[i]]
-    cur_name <- names(list_conf)[i] 
+  for (i in 1:length(data_list)){
+    cur_df <- data_list[[i]]
+    cur_name <- names(data_list)[i] 
     cur_plot <- cur_plot + geom_col(data=cur_df, aes(x = name))
   }
   cur_plot <- cur_plot +
@@ -79,8 +79,17 @@ anim_save("vis_conf.gif", animate(vis_conf, fps=8))
 anim_save("vis_rec.gif", animate(vis_rec, fps=8))
 anim_save("vis_death.gif", animate(vis_death, fps=8))
 
-colnum <- length(col)
-# aggregated_conf <- df_conf[, 5:]
+get_forecast <- function(df){
+  colnum <- length(colnames(df))
+  aggregated_df <- array(as.numeric(unlist(unname(mapply(sum, df[, 5:colnum])))))
+  fit <- auto.arima(ts(aggregated_df, frequency = 365, start=c(2020, 1, 22)))
+  fore <- forecast(fit, h=30)
+  return(fore)
+}
+
+conf_forecast <- get_forecast(df_conf)
+rec_forecast <- get_forecast(df_rec)
+deaths_forecast <- get_forecast(df_deaths)
 
 
 ui <- fluidPage(
@@ -151,6 +160,18 @@ server <- function(input, output, session) {
     list(src = "vis_death.gif",
          contentType = 'image/gif'
     )}, deleteFile = TRUE)
+  
+  output$forec_death <- renderPlot({
+    plot(deaths_forecast)
+  })
+  
+  output$forec_rec <- renderPlot({
+    plot(rec_forecast)
+  })
+  
+  output$forec_conf <- renderPlot({
+    plot(conf_forecast)
+  })
 }
 
 shinyApp(ui, server)
