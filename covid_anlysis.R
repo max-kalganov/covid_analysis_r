@@ -60,18 +60,21 @@ ui <- fluidPage(
 server <- function(input, output, session) {
   output$conf_analysis <- renderPlot({
     current_country <- top_10_countries_conf[top_10_countries_conf$Country.Region == input$country, ]
-    diff_ <- unname(current_country[, 6:ncol(top_10_countries_conf)])
+    diff_ <- unname(current_country[, 6:ncol(top_10_countries_conf)] - current_country[, 5:(ncol(top_10_countries_conf) - 1)])
     col_names <- colnames(current_country)[6:colnum]
     monthes <- format(as.Date(col_names, format='X%m.%d.%Y'), "%B")
-    month_to_diff <- data.frame("mnth" = monthes)
+    month_to_diff <- data.frame("Month" = factor(monthes, levels=rev(unique(monthes))))
     month_to_diff$diff <- array(as.numeric(unlist(diff_)))
-    ggplot(month_to_diff, aes(x = diff, y = mnth, fill=stat(x))) +
+    ggplot(month_to_diff, aes(x = diff, y = Month, fill=stat(x))) +
       geom_density_ridges_gradient(scale = 1, rel_min_height = 0.01) +
       scale_fill_viridis_c(name = "Confirmed people\n per day") +
-      labs(title = paste0("Diffs for each month in country ", input$country)) + 
+      labs(title = paste0("Confirmed people for each month in country ", input$country)) + 
       xlab("Confirmed people\n per day")
   })
-  
+ 
+  output$vis_conf <- renderPlot({
+    
+  }) 
 }
 
 shinyApp(ui, server)
